@@ -30,21 +30,31 @@ private slots:
 	void chessmanClicked(Chessman *chessman);
 
 private:
-	Chessman *lastClicked;
-	Chessman *maps[BOARD_X][BOARD_Y];
-	STATUS_TYPE status;
-	Image *boardImg;
+	
+
 	STATUS_TYPE checkStatus();
 	void updateMaps(Chessman *c1, Chessman *c2);
 	//init for the game
-	void init();
+	void init(PLAYER_ROLE _R, PLAYER_ROLE _B, const QString &_RAi=QString(), const QString &_BAi=QString());
 	//finit for the game
 	void finit();
+
+	Chessman *lastChessman;
+	Chessman *maps[BOARD_X][BOARD_Y];
+	STATUS_TYPE status;
+	Image *boardImg;
+
 	QHBoxLayout *mainLayout;
 	QVBoxLayout *leftLayout;
 	QVBoxLayout *rightLayout;
 	QGridLayout *chessLayout;
 	QGridLayout *revChessLayout;
+
+	CHESS_ROLE currTurn;
+	PLAYER_ROLE currR;
+	PLAYER_ROLE currB;
+	QString RAi;
+	QString BAi;///use pointer ?
 };
 
 #endif

@@ -24,6 +24,7 @@ class Chessman{
 
 	Point getPos()const;
 	CHESS_TYPE getType()const;
+	CHESS_ROLE getRole()const;
 	Image *getImg()const;
 
 	bool checkPos(const Point &_pos)const;

@@ -1,14 +1,13 @@
 #include "Yi.h"
 
 Yi::Yi(QWidget *parent)
-	:QWidget(parent), lastClicked(NULL)
+	:QWidget(parent)
 {
 	INFO("info Yi::Yi entered.\n");
 	//create board image for backgroud
    	boardImg = new Image(
 			          QString((SOURCE_PATH + BOARD_NAME + ".png").c_str()),
 					  QSize(400, 400));
-
     //set title for the window
     setWindowTitle(tr("CHESS"));
 
@@ -17,16 +16,8 @@ Yi::Yi(QWidget *parent)
 	leftLayout = new QVBoxLayout;
 	rightLayout = new QVBoxLayout;
 	chessLayout = new QGridLayout;
+
 	revChessLayout = new QGridLayout;
-
-    //add layouts to the mainLayout
-    mainLayout->addLayout(leftLayout);
-    mainLayout->addLayout(chessLayout);
-    mainLayout->addLayout(rightLayout);
-    mainLayout->setSizeConstraint(QLayout::SetFixedSize);
-
-    //set mainLayout to the window
-  	setLayout(mainLayout);
 
     //add widgets to leftLayout
     leftLayout->addWidget(new Image(QString((SOURCE_PATH + "head1.png").c_str()), QSize(50, 50)));
@@ -34,7 +25,8 @@ Yi::Yi(QWidget *parent)
     leftLayout->addWidget(new QPushButton(QIcon((SOURCE_PATH + "exchange.png").c_str()), tr("exchange")));
     leftLayout->addWidget(new Image(QString((SOURCE_PATH + "head2.png").c_str()), QSize(50, 50)));
     leftLayout->addWidget(new QLabel());
-
+    leftLayout->setSizeConstraint(QLayout::SetFixedSize);
+    //leftLayout->setGeometry(QRect(30, 30, 100, 100));
     //add backgroud to chessLayout & revChessLayout
     chessLayout->addWidget(boardImg, 0, 0, 30, 30);
 
@@ -46,78 +38,89 @@ Yi::Yi(QWidget *parent)
     rightLayout->addWidget(new QPushButton(QIcon((SOURCE_PATH + "pvscom.png").c_str()), tr("player vs com")));
     rightLayout->addWidget(new QPushButton(QIcon((SOURCE_PATH + "comvscom.png").c_str()), tr("com vs com")));
     rightLayout->addWidget(new QPushButton(QIcon((SOURCE_PATH + "recoder.png").c_str()), tr("recode")));
-	init();
+	init(ROLE_PLAYER, ROLE_PLAYER);
 
-    QPropertyAnimation *anim1=new QPropertyAnimation(revChessLayout, "pos");
+    QPropertyAnimation *anim1=new QPropertyAnimation(boardImg, "pos");
         anim1->setDuration(2000);
         anim1->setStartValue(QPoint(0, 360));
         anim1->setEndValue(QPoint(110, 180));
         anim1->setEasingCurve(QEasingCurve::OutBounce);
         anim1->start();
 
+
+        //add layouts to the mainLayout
+        mainLayout->addLayout(leftLayout);
+        mainLayout->addLayout(chessLayout);
+        mainLayout->addLayout(rightLayout);
+        mainLayout->setGeometry(QRect(0,0, 800, 600));
+        mainLayout->setSizeConstraint(QLayout::SetFixedSize);
+
+        //set mainLayout to the window
+        setLayout(mainLayout);
+
 	INFO("info Yi::Yi exited.\n");
 }
 
 Yi::~Yi()
 {
+	//need to be modified
 	delete boardImg;
 	delete mainLayout;
 }
-/*
-Button *Yi::createButton(const QString &text, const char *member)
-{
-	Button *button = new Button(text);
-	connect(button, SIGNAL(clicked()), this, member);
-	return button;
-}
 
-Button *Yi::createButton(const QIcon &icon, const char *member)
-{
-	Button *button = new Button(QString(""));
-	button->setIcon(icon);
-	//connect(button, SINGAL(clicked()), this, member);
-	return button;
-}
-*/
 STATUS_TYPE Yi::checkStatus()
 {
 	//need to be modified
 
 	//tie here to be added
-	return PLAY;
+	return STATUS_PLAY;
 }
 
 void Yi::chessmanClicked(Chessman *chessman)
 {
 	INFO("info Yi::chessmanClicked entered.\n");
 
-    //no chessman selected
-	if (lastClicked == NULL || lastClicked->getType() == NON){
-		lastClicked = chessman;
+	//game over or not begin
+	if (status != STATUS_PLAY){
 		return;
 	}
+
+    //no chessman selected
+	if (lastChessman == NULL || lastChessman->getType() == NON){
+		if (currTurn == chessman->getRole()){
+			lastChessman = chessman;
+		}
+		return;
+	}
+
     //some chessman selected
-	if (lastClicked->canGo(maps, chessman->getPos())){
+	if (currTurn != chessman->getRole() && lastChessman->canGo(maps, chessman->getPos())){
 		printf("debug can go\n");
 		//can go
 		if (chessman->getType() != NON){
 			//die
+			if (chessman->getType() == R_JIANG){
+				status = STATUS_B_WIN;
+			}else if (chessman->getType() == B_JIANG){
+				status = STATUS_R_WIN;
+			}
             chessman->die(this, chessLayout);
 		}
 
-		Point tmpPos = lastClicked->getPos();
-		printf("%d\n", lastClicked->canGo(maps, chessman->getPos()));
-		lastClicked->moveTo(maps, chessman->getPos());
+		Point tmpPos = lastChessman->getPos();
+		printf("%d\n", lastChessman->canGo(maps, chessman->getPos()));
+		lastChessman->moveTo(maps, chessman->getPos());
 		chessman->moveTo(maps, tmpPos);
 
-		updateMaps(chessman, lastClicked);
+		updateMaps(chessman, lastChessman);
 
-		checkStatus();
-		lastClicked = NULL;
+		lastChessman = NULL;
+		//toggle turn
+		currTurn = (currTurn==ROLE_R)?ROLE_B:ROLE_R;
 	}else{
 		//cannot go
 		printf("debug cannot go\n");
-		lastClicked = chessman;
+		lastChessman = chessman;
 	}
 	printf("info Yi::chessmanClicked exited\n");
 }
@@ -145,9 +148,29 @@ void Yi::clickConnect(Image *img)
     connect(img, SIGNAL(clicked(Chessman *)), this, SLOT(chessmanClicked(Chessman *)));
 }
 
-void Yi::init()
+void Yi::init(PLAYER_ROLE _R, PLAYER_ROLE _B, const QString &_RAi, const QString &_BAi)
 {
 	INFO("info Yi::init entered.\n");
+
+	//init player info
+	INFO("info Yi::init initing player info...\n");
+	currTurn= ROLE_R;
+	currR = _R;
+	currB = _B;
+	RAi = _RAi;
+	BAi = _BAi;
+	INFO("info Yi::init player info inited.\n");
+
+	//compile AI if needed
+	INFO("info Yi::init compiling AI files needed...\n");
+	if (currR == ROLE_AI){
+		system(("g++ -shared -fPIC -o " + RAI_NAME + " " + RAi.toStdString()).c_str());
+	}
+	if (currB == ROLE_AI){
+		system(("g++ -shared -fPIC -o " + BAI_NAME + " " + BAi.toStdString()).c_str());
+	}
+	INFO("info Yi::init AI files compiled.\n");
+
 	//init maps
 	printf("info Yi::init initing maps...\n");
 	for (int i=0; i<BOARD_X; ++i){
@@ -201,6 +224,13 @@ void Yi::init()
 		}
 	}
     INFO("info Yi::init all chessmans added to the chessLayout & revChessLayout.\n");
+
+	//game start
+	INFO("info Yi::init game starting...\n");
+	lastChessman = NULL;
+	status = STATUS_PLAY;
+	INFO("info Yi::init game started.\n");
+
 	INFO("info Yi::init exited.\n");
 }
 

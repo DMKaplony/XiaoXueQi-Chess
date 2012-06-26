@@ -34,12 +34,20 @@ const int KIND_OF_CHESSMAN = 14;
 const string SOURCE_PATH = "./sources/";
 const string BOARD_NAME = "BOARD";
 const string IMG_TYPE = ".png";
+
+
+const string RAI_NAME = "RAI.so";
+const string BAI_NAME = "BAI.so";
+
 const int CHESS_NUM[] = {1, 2, 2, 2, 2, 2, 5,
 						 1, 2, 2, 2, 2, 2, 5};
 enum CHESS_TYPE{R_JIANG, R_SHI, R_XIANG, R_MA, R_CHE, R_PAO, R_BING,
 				B_JIANG, B_SHI, B_XIANG, B_MA, B_CHE, B_PAO, B_BING,
-				BOARD, NON};
+				NON};
 
-enum STATUS_TYPE{PLAY, R_WIN, B_WIN, TIE, NOTBEGIN};
+enum STATUS_TYPE{STATUS_PLAY, STATUS_R_WIN, STATUS_B_WIN, STATUS_TIE, STATUS_NON};
+
+enum CHESS_ROLE{ROLE_R, ROLE_B, ROLE_NON};
+enum PLAYER_ROLE{ROLE_PLAYER, ROLE_AI};
 
 #endif

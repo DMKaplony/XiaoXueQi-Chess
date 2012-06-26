@@ -5,8 +5,6 @@ Chessman::Chessman(Point _pos, CHESS_TYPE _type, Image *_img)
 {
 	pos = _pos;
 	type = _type;
-	printf("");
-	//	alive = false;
 }
 
 Chessman::~Chessman()
@@ -22,6 +20,17 @@ Point Chessman::getPos()const
 CHESS_TYPE Chessman::getType()const
 {
 	return type;
+}
+
+CHESS_ROLE Chessman::getRole()const
+{
+	if (type == NON){
+		return ROLE_NON;
+	}else if (type < B_JIANG){
+		return ROLE_R;
+	}else{
+		return ROLE_B;
+	}
 }
 
 Image *Chessman::getImg()const
@@ -132,9 +141,7 @@ bool Chessman::checkPos(const Point &_pos)const
 		}
         return true;
 		break;
-	case BOARD:
 	case NON:
-		printf("312");
 		throw InvalidMoveError();
 		break;
 	default:
@@ -313,7 +320,6 @@ void Chessman::moveTo(Chessman *maps[11][10], const Point &_pos)
 void Chessman::die(Yi *yi, QGridLayout *chessLayout)
 {
 	printf("info Chessman::die entered\n");
-	//	alive = false;
 	type = NON;
     chessLayout->removeWidget(img);
 	delete img;
@@ -321,7 +327,7 @@ void Chessman::die(Yi *yi, QGridLayout *chessLayout)
 	img->addFather(this);
     yi->clickConnect(img);
     chessLayout->addWidget(img, pos.getX(), pos.getY());
-    printf("infor Chessman::die exited\n");
+    printf("info Chessman::die exited\n");
 }
 
 void Chessman::revive()
