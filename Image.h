@@ -9,11 +9,10 @@ class Chessman;
 
 class ImageLoadError{};
 
-
 class Image:public QLabel{
 	Q_OBJECT
 public:
-	Image(const QString &path, const QSize &size);
+    Image(const QString &path, const QSize &size);
 	~Image();
 	void addFather(Chessman *father);
 protected:

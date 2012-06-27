@@ -1,6 +1,6 @@
 // -*- c++ -*-
-#ifndef YI_H
-#define YI_H
+#ifndef CHESS_H
+#define CHESS_H
 
 #include <QtGui>
 
@@ -8,53 +8,83 @@
 using namespace std;
 
 #include "def.h"
+#include "LeftFrame.h"
+#include "RightFrame.h"
 #include "Chessman.h"
 #include "Image.h"
-#include "Point.h"
+#include "Button.h"
 
+//forward declaration
+class QApplication;
 class QWidget;
 class QGridLayout;
-class QVBoxLayout;
-class QHBoxLayout;
+class QLabel;
+class QPoint;
+
+class LeftFrame;
+class RightFrame;
 class Chessman;
 class Image;
-class Point;
+class Button;
 
-class Yi:public QWidget{
+//class for ERROR
+class InvalidSceneError{};
+
+//main class of the game
+class Chess:public QWidget{
 	Q_OBJECT
 public:
-	Yi(QWidget *parent=0);
-	~Yi();
+    //constructor & destructor
+    Chess(QWidget *parent=0);
+    ~Chess();
+    //connect signals and slots
     void clickConnect(Image *img);
-private slots:
-	void chessmanClicked(Chessman *chessman);
+    void connectRevButton(Button *btn);
+    void connectPlayerVsPlayerGame(Button *btn);
+    void connectPlayerVsAiGame(Button *btn);
+    void connectAiVsAiGame(Button *btn);
+    void connectRecorder(Button *btn);
+    void connectOptions(Button *btn);
 
 private:
-	
-
 	STATUS_TYPE checkStatus();
-	void updateMaps(Chessman *c1, Chessman *c2);
-	//init for the game
+    void updatePos(Chessman *c1, Chessman *c2);
+
+    //init & finit for the game
 	void init(PLAYER_ROLE _R, PLAYER_ROLE _B, const QString &_RAi=QString(), const QString &_BAi=QString());
-	//finit for the game
 	void finit();
 
+
+    //variables for the scene
+    QLabel *boardImg;
+    QGridLayout *chessLayout;
+
+    //variables for the game
 	Chessman *lastChessman;
-	Chessman *maps[BOARD_X][BOARD_Y];
+    Chessman *maps[BOARD_X][BOARD_Y];   //this is also for the scene
 	STATUS_TYPE status;
-	Image *boardImg;
+    CHESS_ROLE currTurn;
+    CHESS_ROLE currScene;
+    PLAYER_ROLE currR;
+    PLAYER_ROLE currB;
 
-	QHBoxLayout *mainLayout;
-	QVBoxLayout *leftLayout;
-	QVBoxLayout *rightLayout;
-	QGridLayout *chessLayout;
-	QGridLayout *revChessLayout;
+    //variables saving AI file paths
+    QString RAi;
+    QString BAi;
 
-	CHESS_ROLE currTurn;
-	PLAYER_ROLE currR;
-	PLAYER_ROLE currB;
-	QString RAi;
-	QString BAi;///use pointer ?
+    //consts for the scene
+    static const QSize CHESSMAN_SIZE;
+    static const QSize BOARD_SIZE;
+
+private slots:
+    //slots
+    void chessmanClicked(Chessman *chessman);
+    void reverseBoard();
+    void startPlayerVsPlayerGame();
+    void startPlayerVsAiGame();
+    void startAiVsAiGame();
+    void startRecorder();
+    void showOptions();
 };
 
 #endif

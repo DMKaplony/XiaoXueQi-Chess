@@ -1,6 +1,6 @@
 #include "Chessman.h"
 
-Chessman::Chessman(Point _pos, CHESS_TYPE _type, Image *_img)
+Chessman::Chessman(const QPoint &_pos, CHESS_TYPE _type, Image *_img)
 	:img(_img)
 {
 	pos = _pos;
@@ -12,7 +12,7 @@ Chessman::~Chessman()
 	delete img;
 }
 
-Point Chessman::getPos()const
+QPoint Chessman::getPos()const
 {
 	return pos;
 }
@@ -38,11 +38,11 @@ Image *Chessman::getImg()const
 	return img;
 }
 
-bool Chessman::checkPos(const Point &_pos)const
+bool Chessman::checkPos(const QPoint &_pos)const
 {
 	INFO("info Chessman::checkPos executed.\n");
-	int x = _pos.getX();
-	int y = _pos.getY();
+    int x = _pos.x();
+    int y = _pos.y();
 	if (x < 1 || y < 1 || x >= BOARD_X || y >= BOARD_Y){
 		return false;
 	}
@@ -151,7 +151,7 @@ bool Chessman::checkPos(const Point &_pos)const
 }
 
 
-bool Chessman::canGo(Chessman *maps[11][10], const Point &_pos)const
+bool Chessman::canGo(Chessman *maps[11][10], const QPoint &_pos)const
 {
 	printf("info Chessman::canGo entered\n");
 	if (!checkPos(_pos)){
@@ -161,10 +161,10 @@ bool Chessman::canGo(Chessman *maps[11][10], const Point &_pos)const
 	if (pos == _pos){//precheck for speed
 		return false;
 	}
-	int x = pos.getX();
-	int y = pos.getY();
-	int _x = _pos.getX();
-	int _y = _pos.getY();
+    int x = pos.x();
+    int y = pos.y();
+    int _x = _pos.x();
+    int _y = _pos.y();
 
 	switch (type){
 	case R_JIANG:
@@ -305,7 +305,7 @@ bool Chessman::canGo(Chessman *maps[11][10], const Point &_pos)const
 
 
 
-void Chessman::moveTo(Chessman *maps[11][10], const Point &_pos)
+void Chessman::moveTo(Chessman *maps[11][10], const QPoint &_pos)
 {
 	printf("info Chessman::moveTo entered\n");
     /*
@@ -317,7 +317,7 @@ void Chessman::moveTo(Chessman *maps[11][10], const Point &_pos)
 	printf("info Chessman::moveTO exited\n");
 }
 
-void Chessman::die(Yi *yi, QGridLayout *chessLayout)
+void Chessman::die(Chess *chess, QGridLayout *chessLayout)
 {
 	printf("info Chessman::die entered\n");
 	type = NON;
@@ -325,8 +325,8 @@ void Chessman::die(Yi *yi, QGridLayout *chessLayout)
 	delete img;
     img = new Image(QString((SOURCE_PATH + "board.jpg").c_str()), QSize(30,30));
 	img->addFather(this);
-    yi->clickConnect(img);
-    chessLayout->addWidget(img, pos.getX(), pos.getY());
+    chess->clickConnect(img);
+    chessLayout->addWidget(img, pos.x(), pos.y());
     printf("info Chessman::die exited\n");
 }
 

@@ -31,7 +31,7 @@ void Image::mouseReleaseEvent(QMouseEvent *e)
 {
 	if (imagePressed){
 		printf("info Image::mouseReleaseEvent clicked emitted\n");
-        printf("%d\n", this->fatherChessman->getType());
+        //printf("%d\n", this->fatherChessman->getType());
 		emit clicked(fatherChessman);
 		imagePressed = false;
 	}

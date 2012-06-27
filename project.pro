@@ -9,5 +9,13 @@ INCLUDEPATH += .
 CONFIG += debug
 
 # Input
-HEADERS += Chessman.h def.h Image.h Point.h Yi.h
-SOURCES += Chessman.cpp Image.cpp main.cpp Point.cpp Yi.cpp
+HEADERS += Chessman.h def.h Image.h \
+    Button.h \
+    LeftFrame.h \
+    RightFrame.h \
+    Chess.h
+SOURCES += Chessman.cpp Image.cpp main.cpp \
+    Button.cpp \
+    LeftFrame.cpp \
+    RightFrame.cpp \
+    Chess.cpp

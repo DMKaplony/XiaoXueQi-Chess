@@ -1,74 +1,102 @@
-#include "Yi.h"
+#include "Chess.h"
 
-Yi::Yi(QWidget *parent)
+//consts for the class
+const QSize Chess::CHESSMAN_SIZE = QSize(55, 50);
+const QSize Chess::BOARD_SIZE = QSize(600, 600);
+
+//constructor
+Chess::Chess(QWidget *parent)
 	:QWidget(parent)
 {
-	INFO("info Yi::Yi entered.\n");
-	//create board image for backgroud
-   	boardImg = new Image(
-			          QString((SOURCE_PATH + BOARD_NAME + ".png").c_str()),
-					  QSize(400, 400));
+    INFO("info Chess::Chess entered.\n");
+
     //set title for the window
-    setWindowTitle(tr("CHESS"));
+    setWindowTitle(tr(WIN_TITLE));
 
-    //create all layouts for the app
-	mainLayout = new QHBoxLayout;
-	leftLayout = new QVBoxLayout;
-	rightLayout = new QVBoxLayout;
-	chessLayout = new QGridLayout;
+    //set size for the window
+    setFixedSize(WIN_SIZE);
 
-	revChessLayout = new QGridLayout;
+    //set background for the app
+    QPalette palette();
+    QPixmap background = QPixmap((SOURCE_PATH + BACKGROUND_IMG).c_str());
+    palette.setBrush(backgroundRole(),QBrush(background));
+    setPalette(palette);
 
-    //add widgets to leftLayout
-    leftLayout->addWidget(new Image(QString((SOURCE_PATH + "head1.png").c_str()), QSize(50, 50)));
-    leftLayout->addWidget(new QLabel());
-    leftLayout->addWidget(new QPushButton(QIcon((SOURCE_PATH + "exchange.png").c_str()), tr("exchange")));
-    leftLayout->addWidget(new Image(QString((SOURCE_PATH + "head2.png").c_str()), QSize(50, 50)));
-    leftLayout->addWidget(new QLabel());
-    leftLayout->setSizeConstraint(QLayout::SetFixedSize);
-    //leftLayout->setGeometry(QRect(30, 30, 100, 100));
-    //add backgroud to chessLayout & revChessLayout
-    chessLayout->addWidget(boardImg, 0, 0, 30, 30);
+    //create main parts for the app
+    leftFrame = new LeftFrame(this);
+    rightFrame = new RightFrame(this);
+    chessLayout = new QGridLayout();
 
-    revChessLayout->addWidget(boardImg, 0, 0, 30, 30);
+    //chessLayout->addWidget(boardImg, 0, 0, BOARD_X+1, BOARD_Y+1);
 
-    //add widgets to rightLayout
-    rightLayout->addWidget(new QTextEdit());
-    rightLayout->addWidget(new QPushButton(QIcon((SOURCE_PATH + "pvsp.png").c_str()), tr("player vs player")));
-    rightLayout->addWidget(new QPushButton(QIcon((SOURCE_PATH + "pvscom.png").c_str()), tr("player vs com")));
-    rightLayout->addWidget(new QPushButton(QIcon((SOURCE_PATH + "comvscom.png").c_str()), tr("com vs com")));
-    rightLayout->addWidget(new QPushButton(QIcon((SOURCE_PATH + "recoder.png").c_str()), tr("recode")));
-	init(ROLE_PLAYER, ROLE_PLAYER);
+    //set chess-board image
+    boardImg = new QLabel(this);
+    QImage img((SOURCE_PATH + BOARD_IMG).c_str());
+    boardImg->setPixmap(QPixmap::fromImage(img.scaled(BOARD_SIZE, QT::IgnoreAspectRatio)));
+    boardImg->setLayout(chessLayout);
+    boardImg->move(BOARD_POS);
 
+    rightFrame->showButtons();
+
+    /*
     QPropertyAnimation *anim1=new QPropertyAnimation(boardImg, "pos");
-        anim1->setDuration(2000);
-        anim1->setStartValue(QPoint(0, 360));
-        anim1->setEndValue(QPoint(110, 180));
-        anim1->setEasingCurve(QEasingCurve::OutBounce);
-        anim1->start();
-
-
-        //add layouts to the mainLayout
-        mainLayout->addLayout(leftLayout);
-        mainLayout->addLayout(chessLayout);
-        mainLayout->addLayout(rightLayout);
-        mainLayout->setGeometry(QRect(0,0, 800, 600));
-        mainLayout->setSizeConstraint(QLayout::SetFixedSize);
-
-        //set mainLayout to the window
-        setLayout(mainLayout);
-
-	INFO("info Yi::Yi exited.\n");
+    anim1->setDuration(2000);
+    anim1->setStartValue(QPoint(0, 0));
+    anim1->setEndValue(QPoint(135, 11));
+    anim1->setEasingCurve(QEasingCurve::OutBounce);
+    anim1->start();
+    connect(anim1, SIGNAL(finished()), this, SLOT(repaint()));
+    */
+    INFO("info Chess::Chess exited.\n");
 }
 
-Yi::~Yi()
+Chess::~Chess()
 {
 	//need to be modified
 	delete boardImg;
 	delete mainLayout;
+    delete leftFrame;
+    delete rightFrame;
 }
 
-STATUS_TYPE Yi::checkStatus()
+void Chess::clickConnect(Image *img)
+{
+    connect(img, SIGNAL(clicked(Chessman *)), this, SLOT(chessmanClicked(Chessman *)));
+}
+
+void Chess::connectRevButton(Button *btn)
+{
+    connect(btn, SIGNAL(clicked()), this, SLOT(reverseBoard()));
+}
+
+void Chess::connectPlayerVsPlayerGame(Button *btn)
+{
+    connect(btn, SIGNAL(clicked()), this, SLOT(startPlayerVsPlayerGame()));
+}
+
+void Chess::connectPlayerVsAiGame(Button *btn)
+{
+    connect(btn, SIGNAL(clicked()), this, SLOT(startPlayerVsAiGame()));
+}
+
+void Chess::connectAiVsAiGame(Button *btn)
+{
+    connect(btn, SIGNAL(clicked()), this, SLOT(startAiVsAiGame()));
+}
+
+void Chess::connectRecorder(Button *btn)
+{
+    connect(btn, SIGNAL(clicked()), this, SLOT(startRecorder()));
+}
+
+void Chess::connectOptions(Button *btn)
+{
+    connect(btn, SIGNAL(clicked()), this, SLOT(showOptions()));
+}
+
+
+
+STATUS_TYPE Chess::checkStatus()
 {
 	//need to be modified
 
@@ -76,167 +104,124 @@ STATUS_TYPE Yi::checkStatus()
 	return STATUS_PLAY;
 }
 
-void Yi::chessmanClicked(Chessman *chessman)
+void Chess::updatePos(Chessman *c1, Chessman *c2)
 {
-	INFO("info Yi::chessmanClicked entered.\n");
+    QPoint tmp1 = c1->getPos();
+    int x1 = tmp1.x();
+    int y1 = tmp1.y();
+    QPoint tmp2 = c2->getPos();
+    int x2 = tmp2.x();
+    int y2 = tmp2.y();
 
-	//game over or not begin
-	if (status != STATUS_PLAY){
-		return;
-	}
+    chessLayout->removeWidget(c1->getImg());
+    chessLayout->removeWidget(c2->getImg());
+    maps[x1][y1] = c2;
+    maps[x2][y2] = c1;
+    if (currScene == ROLE_B){
+        x1 = BOARD_X - x1;
+        x2 = BOARD_X - x2;
+        y1 = BOARD_Y - y1;
+        y2 = BOARD_Y - y2;
+    }
+    chessLayout->addWidget(c2->getImg(), x1, y1);
+    chessLayout->addWidget(c1->getImg(), x2, y2);
 
-    //no chessman selected
-	if (lastChessman == NULL || lastChessman->getType() == NON){
-		if (currTurn == chessman->getRole()){
-			lastChessman = chessman;
-		}
-		return;
-	}
+    QPoint tmpPos = c1->getPos();
+    c1->moveTo(maps, c2->getPos());
+    c2->moveTo(maps, tmpPos);
 
-    //some chessman selected
-	if (currTurn != chessman->getRole() && lastChessman->canGo(maps, chessman->getPos())){
-		printf("debug can go\n");
-		//can go
-		if (chessman->getType() != NON){
-			//die
-			if (chessman->getType() == R_JIANG){
-				status = STATUS_B_WIN;
-			}else if (chessman->getType() == B_JIANG){
-				status = STATUS_R_WIN;
-			}
-            chessman->die(this, chessLayout);
-		}
-
-		Point tmpPos = lastChessman->getPos();
-		printf("%d\n", lastChessman->canGo(maps, chessman->getPos()));
-		lastChessman->moveTo(maps, chessman->getPos());
-		chessman->moveTo(maps, tmpPos);
-
-		updateMaps(chessman, lastChessman);
-
-		lastChessman = NULL;
-		//toggle turn
-		currTurn = (currTurn==ROLE_R)?ROLE_B:ROLE_R;
-	}else{
-		//cannot go
-		printf("debug cannot go\n");
-		lastChessman = chessman;
-	}
-	printf("info Yi::chessmanClicked exited\n");
+    printf("Chess::mapsupdated");
 }
 
-void Yi::updateMaps(Chessman *c1, Chessman *c2)
+void Chess::init(PLAYER_ROLE _R, PLAYER_ROLE _B, const QString &_RAi, const QString &_BAi)
 {
-	Point tmp1 = c1->getPos();
-	int x1 = tmp1.getX();
-	int y1 = tmp1.getY();
-	Point tmp2 = c2->getPos();
-	int x2 = tmp2.getX();
-	int y2 = tmp2.getY();
-    chessLayout->removeWidget(maps[x1][y1]->getImg());
-    chessLayout->removeWidget(maps[x2][y2]->getImg());
-	maps[x1][y1] = c1;
-	maps[x2][y2] = c2;
-    chessLayout->addWidget(maps[x1][y1]->getImg(), x1, y1);
-    chessLayout->addWidget(maps[x2][y2]->getImg(), x2, y2);
-
-	printf("Yi::mapsupdated");
-}
-
-void Yi::clickConnect(Image *img)
-{
-    connect(img, SIGNAL(clicked(Chessman *)), this, SLOT(chessmanClicked(Chessman *)));
-}
-
-void Yi::init(PLAYER_ROLE _R, PLAYER_ROLE _B, const QString &_RAi, const QString &_BAi)
-{
-	INFO("info Yi::init entered.\n");
+    INFO("info Chess::init entered.\n");
 
 	//init player info
-	INFO("info Yi::init initing player info...\n");
-	currTurn= ROLE_R;
+    INFO("info Chess::init initing player info...\n");
+    currTurn = ROLE_R;
+    currScene = ROLE_R;
 	currR = _R;
 	currB = _B;
 	RAi = _RAi;
 	BAi = _BAi;
-	INFO("info Yi::init player info inited.\n");
+    INFO("info Chess::init player info inited.\n");
 
 	//compile AI if needed
-	INFO("info Yi::init compiling AI files needed...\n");
+    INFO("info Chess::init compiling AI files needed...\n");
 	if (currR == ROLE_AI){
 		system(("g++ -shared -fPIC -o " + RAI_NAME + " " + RAi.toStdString()).c_str());
 	}
 	if (currB == ROLE_AI){
 		system(("g++ -shared -fPIC -o " + BAI_NAME + " " + BAi.toStdString()).c_str());
 	}
-	INFO("info Yi::init AI files compiled.\n");
+    INFO("info Chess::init AI files compiled.\n");
 
 	//init maps
-	printf("info Yi::init initing maps...\n");
+    printf("info Chess::init initing maps...\n");
 	for (int i=0; i<BOARD_X; ++i){
 		for (int j=0; j<BOARD_Y; ++j){
 			maps[i][j] = NULL;
 		}
 	}
-	INFO("info Yi::init maps inited.\n");
+    INFO("info Chess::init maps inited.\n");
 
 	//create chessman on maps
-	INFO("info Yi::init creating chessman on maps...\n");
+    INFO("info Chess::init creating chessman on maps...\n");
 	Image *chessmanImg;
 	int cnt = 0;
 	for (int i=0; i<KIND_OF_CHESSMAN; ++i){
 		for (int j=0; j<CHESS_NUM[i]; ++j){
 			chessmanImg = new Image(
 							QString((SOURCE_PATH + CHESS_NAME[i] + IMG_TYPE).c_str()),
-							QSize(30, 30));
+                            CHESSMAN_SIZE);
 			int x = CHESS_POS[cnt][0];
 			int y = CHESS_POS[cnt][1];
-			maps[x][y] = new Chessman(Point(x,y), CHESS_TYPE(i), chessmanImg);
+            maps[x][y] = new Chessman(QPoint(x,y), CHESS_TYPE(i), chessmanImg);
 			chessmanImg->addFather(maps[x][y]);
 			clickConnect(chessmanImg);
 			++cnt;
 		}
 	}
-	INFO("info Yi::init chessman created.\n");
+    INFO("info Chess::init chessman created.\n");
 
 	//create non-chessman(i.e. the board) on maps
-	INFO("info Yi::init creating non-chessman(i.e. the board) on maps...\n");
+    INFO("info Chess::init creating non-chessman(i.e. the board) on maps...\n");
 	for (int i=1; i<BOARD_X; ++i){
 		for (int j=1; j<BOARD_Y; ++j){
 			if (maps[i][j] == NULL){
 				chessmanImg = new Image(
 									QString((SOURCE_PATH + BLANK + IMG_TYPE).c_str()),
-									QSize(30,30));
-				maps[i][j] = new Chessman(Point(i, j), NON, chessmanImg);
+                                    CHESSMAN_SIZE);
+                maps[i][j] = new Chessman(QPoint(i, j), NON, chessmanImg);
 				chessmanImg->addFather(maps[i][j]);
 				clickConnect(chessmanImg);
 			}
 		}
 	}
-	INFO("info Yi::init non-chessman created.\n");
+    INFO("info Chess::init non-chessman created.\n");
 
-    //add chessmans to chessLayout & revChessLayout
-    INFO("info Yi::init adding chessmans to chessLayout & revChessLayout...\n");
+    //add chessmans to chessLayout
+    INFO("info Chess::init adding chessmans to chessLayout...\n");
 	for (int i=1; i<BOARD_X; ++i){
 		for (int j=1; j<BOARD_Y; ++j){
             chessLayout->addWidget(maps[i][j]->getImg(), i, j);
-            revChessLayout->addWidget(maps[i][j]->getImg(), BOARD_X-i, BOARD_Y-j);
 		}
 	}
-    INFO("info Yi::init all chessmans added to the chessLayout & revChessLayout.\n");
+    INFO("info Chess::init all chessmans added to the chessLayout.\n");
 
 	//game start
-	INFO("info Yi::init game starting...\n");
+    INFO("info Chess::init game starting...\n");
 	lastChessman = NULL;
 	status = STATUS_PLAY;
-	INFO("info Yi::init game started.\n");
+    INFO("info Chess::init game started.\n");
 
-	INFO("info Yi::init exited.\n");
+    INFO("info Chess::init exited.\n");
 }
 
-void Yi::finit()
+void Chess::finit()
 {
-	INFO("info YI::finit enterd.\n");
+    INFO("info Chess::finit enterd.\n");
 	//delete maps
 	for (int i=0; i<BOARD_X; ++i){
 		for (int j=0; j<BOARD_Y; ++j){
@@ -245,5 +230,155 @@ void Yi::finit()
 			}
 		}
 	}
+
+}
+
+void Chess::chessmanClicked(Chessman *chessman)
+{
+    INFO("info Chess::chessmanClicked entered.\n");
+
+    //game over or not begin
+    if (status != STATUS_PLAY){
+        return;
+    }
+
+    //no chessman selected
+    if (lastChessman == NULL || lastChessman->getType() == NON){
+        if (currTurn == chessman->getRole()){
+            lastChessman = chessman;
+        }
+        return;
+    }
+
+    //some chessman selected
+    if (currTurn != chessman->getRole() && lastChessman->canGo(maps, chessman->getPos())){
+        printf("debug can go\n");
+        //can go
+        if (chessman->getType() != NON){
+            //die
+            if (chessman->getType() == R_JIANG){
+                status = STATUS_B_WIN;
+            }else if (chessman->getType() == B_JIANG){
+                status = STATUS_R_WIN;
+            }
+            rightFrame->updateStatusLabel(status);
+            chessman->die(this, chessLayout);
+        }
+
+
+        updatePos(chessman, lastChessman);
+
+        lastChessman = NULL;
+        //toggle turn
+        currTurn = (currTurn==ROLE_R)?ROLE_B:ROLE_R;
+    }else{
+        //cannot go
+        printf("debug cannot go\n");
+        lastChessman = chessman;
+    }
+    printf("info Chess::chessmanClicked exited\n");
+}
+
+void Chess::reverseBoard()
+{
+    INFO("info Chess::reverseBoard entered.\n");
+
+    //animation
+    QPropertyAnimation *anim;
+    QParallelAnimationGroup *group = new QParallelAnimationGroup();
+
+    for (int i=1; i<(BOARD_X+1)/2; ++i){
+        for(int j=1; j<BOARD_Y; ++j){
+            //if (maps[i][j]->getType() != NON || maps[BOARD_X-i][BOARD_Y-j]->getType() != NON){
+            {
+                INFO("info : %d %d\n", i, j);
+                QPoint pos1 = maps[i][j]->getImg()->geometry().topLeft();
+                QPoint pos2 = maps[BOARD_X-i][BOARD_Y-j]->getImg()->geometry().topLeft();
+                anim = new QPropertyAnimation(maps[i][j]->getImg(), "pos");
+                anim->setDuration(REV_ANIM_TIME);
+                anim->setStartValue(pos1);
+                anim->setEndValue(pos2);
+                anim->setEasingCurve(QEasingCurve::InOutElastic);
+                group->addAnimation(anim);
+
+                anim = new QPropertyAnimation(maps[BOARD_X-i][BOARD_Y-j]->getImg(), "pos");
+                anim->setDuration(REV_ANIM_TIME);
+                anim->setStartValue(pos2);
+                anim->setEndValue(pos1);
+                anim->setEasingCurve(QEasingCurve::InOutElastic);
+                group->addAnimation(anim);
+            }
+        }
+    }
+    group->start();
+
+    //toggle Scene
+    currScene = (currScene==ROLE_R)?ROLE_B:ROLE_R;
+
+    //re-add chessmans to chessLayout
+    INFO("info Chess::reverseBoard readding chessmans to chessLayout...\n");
+
+    for (int i=1; i<BOARD_X; ++i){
+        for (int j=1; j<BOARD_Y; ++j){
+            chessLayout->removeWidget(maps[i][j]->getImg());
+        }
+    }
+    for (int i=1; i<BOARD_X; ++i){
+        for (int j=1; j<BOARD_Y; ++j){
+            if (currScene == ROLE_B){
+                chessLayout->addWidget(maps[i][j]->getImg(), BOARD_X-i, BOARD_Y-j);
+            }else if (currScene == ROLE_R){
+                chessLayout->addWidget(maps[i][j]->getImg(), i, j);
+            }else{
+                throw InvalidSceneError();
+            }
+        }
+    }
+
+    INFO("info Chess::reverseBoard all chessmans re-added to the chessLayout.\n");
+
+    INFO("info Chess::reverseBoard exited.\n");
+}
+
+
+
+
+void Chess::startPlayerVsPlayerGame()
+{
+    init(ROLE_PLAYER, ROLE_PLAYER);
+}
+
+void Chess::startPlayerVsAiGame()
+{
+
+
+}
+
+void Chess::startAiVsAiGame()
+{
+    QString aiPathR = QFileDialog::getOpenFileName(this, tr("Open Chess AI File"), ".", tr("Chess AI Files(*.cai)"));
+    if(aiPathR.length() == 0) {
+        QMessageBox::information(NULL, tr("Path"), tr("You didn't select any files."));
+    }else{
+        QMessageBox::information(NULL, tr("Path"), tr("You selected ") + aiPathR);
+    }
+
+    QString aiPathB = QFileDialog::getOpenFileName(this, tr("Open Chess AI File"), ".", tr("Chess AI Files(*.cai)"));
+    if(aiPathB.length() == 0) {
+        QMessageBox::information(NULL, tr("Path"), tr("You didn't select any files."));
+    }else{
+        QMessageBox::information(NULL, tr("Path"), tr("You selected ") + aiPathB);
+    }
+
+    init(ROLE_AI, ROLE_AI, aiPathR, aiPathB);
+}
+
+void Chess::startRecorder()
+{
+
+}
+
+void Chess::showOptions()
+{
 
 }
