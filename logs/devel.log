@@ -1,0 +1,25 @@
+
+学习使用emacs进行coding
+学习使用QT进行c++开发
+学习使用git来进行版本控制
+使用QT Creator 进行debug。（QT多文件gdb一直没跳出来，总是无法设置断点）
+后来发现 动画的制作 需要使用绝对布局。。这意味着之几天的代码都要被重写。
+->使用肉眼定位，定位动画的终止位置与控件在layout中的位置重叠，然后手动刷新一下
+->使用绝对布局和layout布局管理器 一起使用， 前者方便动画，后者方便走棋子（省去计算）
+
+
+
+g++ 需要系统有环境变量
+用到了system，linux only （可以改进）
+
+
+{
+CBase *base = new CDerived();
+CBase *base = new CDeviced;
+
+加括号调用没有参数的构造函数，不加括号调用默认构造函数或唯一的构造函数，看需求
+}学到了
+
+remeber to create auto reverse toggler
+
+对将情况！！
