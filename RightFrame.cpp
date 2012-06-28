@@ -1,52 +1,78 @@
 #include "RightFrame.h"
 
-const QPoint RightFrame::MENU_LEFT_POINT = QPoint(700, 500);
-const QPoint RightFrame::MENU_MID_POINT = QPoint(750, 400);
-const QPoint RightFrame::MENU_RIGHT_POINT = QPoint(800, 500);
-const QPoint RightFrame::MENU_STEP = QPoint(0, 20);
+//consts
+const QPoint RightFrame::MENU_LEFT_POINT = QPoint(580, 620);
+const QPoint RightFrame::MENU_MID_POINT = QPoint(830, 300);
+const QPoint RightFrame::MENU_RIGHT_POINT = QPoint(980, 620);
+const QPoint RightFrame::MENU_STEP = QPoint(0, 50);
 
-const int RightFrame::MAIN_MENU_SIZE = 5;
-const int RightFrame::PVP_MENU_SIZE = 6;
-const int RightFrame::PVA_MENU_SIZE = 7;
-const int RightFrame::AVA_MENU_SIZE = 5;
-const int RightFrame::RECORDER_MENU_SIZE = 4;
-const int RightFrame::OPTIONS_MENU_SIZE = 100;
+const QPoint RightFrame::HISTORY_POS = QPoint(830, 20);
+const QPoint RightFrame::STATUS_LABEL_POS = QPoint(830, 220);
+const QSize RightFrame::HISTORY_SIZE = QSize(200, 180);
+const int RightFrame::DURING = 800;
+//const QSize STATUS_LABEL_SIZE = QS;
 
 
+//constructor
 RightFrame::RightFrame(Chess *chess)
 {
-    history = new QTextEdit;
+    //save father pointer
+    parent = chess;
 
-    statusLabel =  new QLabel();
-    pVpButton = new Button(tr("Player vs Player"));
-    pVaButton = new Button(tr("Player vs AI"));
-    pVaButton->hide();
-    aVaButton = new Button(tr("AI vs AI"));
-    recorderButton = new Button(tr("recorder"));
-    optionsButton = new Button(tr("options"));
+    //create TextEdit to show history
+    history = new QTextEdit(chess);
+    history->setReadOnly(true);
+    history->resize(HISTORY_SIZE);
+    history->move(HISTORY_POS);
 
+    //create label to show current status
+    statusLabel =  new QLabel(chess);
+//  statusLabel->resize(STATUS_LABEL_SIZE);
+    statusLabel->move(STATUS_LABEL_POS);
+    statusLabel->setText("status label");
+
+	//create buttons in main-menu
+    pVpButton = new Button(tr("Player vs Player"), chess);
+    pVaButton = new Button(tr("Player vs AI"), chess);
+    aVaButton = new Button(tr("AI vs AI"), chess);
+    recorderButton = new Button(tr("Recorder"), chess);
+    optionsButton = new Button(tr("Options"), chess);
+    exitButton = new Button(tr("Exit"), chess);
+
+	//connect main-menu and secondary-menu
     connect(pVpButton, SIGNAL(clicked()), this, SLOT(pVpButtonClicked()));
     connect(pVaButton, SIGNAL(clicked()), this, SLOT(pVaButtonClicked()));
     connect(aVaButton, SIGNAL(clicked()), this, SLOT(aVaButtonClicked()));
     connect(recorderButton, SIGNAL(clicked()), this, SLOT(recorderButtonClicked()));
     connect(optionsButton, SIGNAL(clicked()), this, SLOT(optionsButtonClicked()));
+    connect(exitButton, SIGNAL(clicked()), chess, SLOT(exitGame()));
 
-
-
-    startButton = new Button(tr("Start Game"));
-	regretButton = new Button(tr("Regret"));
-	endButton = new Button(tr("End Game"));
-	saveGameButton = new Button(tr("Save Game"));
-	loadGameButton = new Button(tr("Load Game"));
-	backButton = new Button(tr("Back"));
-    loadAIButton = new Button(tr("Load AI"));
-    loseButton = new Button(tr("Give Up"));
-    prevStepButton = new Button(tr("Prev Step"));
-    nextStepButton = new Button(tr("Next Step"));
+	//create buttons in secondary-menu
+    startButton = new Button(tr("Start Game"), chess);
+    regretButton = new Button(tr("Regret"), chess);
+    endButton = new Button(tr("End Game"), chess);
+    saveGameButton = new Button(tr("Save Game"), chess);
+    loadGameButton = new Button(tr("Load Game"), chess);
+    backButton = new Button(tr("Back"), chess);
+    loadAIButton = new Button(tr("Load AI"), chess);
+    loseButton = new Button(tr("Give Up"), chess);
+    prevStepButton = new Button(tr("Prev Step"), chess);
+    nextStepButton = new Button(tr("Next Step"), chess);
 
     connect(backButton, SIGNAL(clicked()), this, SLOT(backButtonClicked()));
+    connect(startButton, SIGNAL(clicked()), this, SLOT(startButtonClicked()));
+    connect(regretButton, SIGNAL(clicked()), this, SLOT(regretButtonClicked()));
+    connect(endButton, SIGNAL(clicked()), this, SLOT(endButtonClicked()));
+    connect(saveGameButton, SIGNAL(clicked()), this, SLOT(saveGameButtonClicked()));
+    connect(loadGameButton, SIGNAL(clicked()), this, SLOT(loadGameButtonClicked()));
+    connect(loadAIButton, SIGNAL(clicked()), this, SLOT(loadAIButtonClicked()));
+    connect(loseButton, SIGNAL(clicked()), this, SLOT(loseButtonClicked()));
+    connect(prevStepButton, SIGNAL(clicked()), this, SLOT(prevStepButtonClicked()));
+    connect(nextStepButton, SIGNAL(clicked()), this, SLOT(nextStepButtonClicked()));
 
 
+
+	//hide all secondary-menu buttons
     startButton->hide();
     regretButton->hide();
     endButton->hide();
@@ -58,12 +84,13 @@ RightFrame::RightFrame(Chess *chess)
     prevStepButton->hide();
     nextStepButton->hide();
 
-
+	//attach each-menu buttons to array
     mainMenu[0] = pVpButton;
     mainMenu[1] = pVaButton;
     mainMenu[2] = aVaButton;
     mainMenu[3] = recorderButton;
     mainMenu[4] = optionsButton;
+    mainMenu[5] = exitButton;
 
     pVpMenu[0] = startButton;
     pVpMenu[1] = regretButton;
@@ -92,34 +119,53 @@ RightFrame::RightFrame(Chess *chess)
 	recorderMenu[3] = backButton;
 
     //create animation for menus
-    mainAnimGroup = createAnimGroup(mainMenu, MAIN_MENU_SIZE, MENU_LEFT_POINT, 600);
-    pVpAnimGroup = createAnimGroup(pVpMenu, PVP_MENU_SIZE, MENU_RIGHT_POINT, 600);
-    pVaAnimGroup = createAnimGroup(pVaMenu, PVA_MENU_SIZE, MENU_RIGHT_POINT, 600);
-    aVaAnimGroup = createAnimGroup(aVaMenu, AVA_MENU_SIZE, MENU_RIGHT_POINT, 600);
-    recorderAnimGroup = createAnimGroup(recorderMenu, RECORDER_MENU_SIZE, MENU_RIGHT_POINT, 600);
-//    optionsAnimGroup = createAnimGroup(optionsMenu, OPTIONS_MENU_SIZE, MENU_RIGHT_POINT, 2000);
+    mainAnimGroup = createMasterAnimGroup(mainMenu, MAIN_MENU_SIZE, MENU_LEFT_POINT, DURING);
+    pVpAnimGroup = createSecondaryAnimGroup(pVpMenu, PVP_MENU_SIZE, MENU_RIGHT_POINT, DURING);
+    pVaAnimGroup = createSecondaryAnimGroup(pVaMenu, PVA_MENU_SIZE, MENU_RIGHT_POINT, DURING);
+    aVaAnimGroup = createSecondaryAnimGroup(aVaMenu, AVA_MENU_SIZE, MENU_RIGHT_POINT, DURING);
+    recorderAnimGroup = createSecondaryAnimGroup(recorderMenu, RECORDER_MENU_SIZE, MENU_RIGHT_POINT, DURING);
+//    optionsAnimGroup = createSecondaryAnimGroup(optionsMenu, OPTIONS_MENU_SIZE, MENU_RIGHT_POINT, DURING);
+
+	//set current menu
     currMenu = NON_MENU;
 }
 
+//destructor
 RightFrame::~RightFrame()
 {
     delete history;
-    delete recorderButton;
-    delete optionsButton;
+	delete statusLabel;
+
+    delete startButton;
+    delete regretButton;
+    delete endButton;
+    delete saveGameButton;
+    delete loadGameButton;
+    delete backButton;
+    delete loadAIButton;
+    delete loseButton;
+    delete prevStepButton;
+    delete nextStepButton;
+
+	delete mainAnimGroup;
+	delete pVpAnimGroup;
+	delete pVaAnimGroup;
+	delete aVaAnimGroup;
+	delete recorderAnimGroup;
+//	delete optionsAnimGroup;
+    delete exitButton;
+
 }
 
-
+//update status label
 void RightFrame::updateStatusLabel(STATUS_TYPE status)
 {
 
 }
 
-void RightFrame::showButtons()
-{
-    backButtonClicked();
-}
 
-QParallelAnimationGroup *RightFrame::createAnimGroup(Button *menu[], int size, const QPoint &startPoint, int during)
+//create animation group for master menu
+QParallelAnimationGroup *RightFrame::createMasterAnimGroup(Button *menu[], int size, const QPoint &startPoint, int during)
 {
     //create animation for menu
     QParallelAnimationGroup *group = new QParallelAnimationGroup();
@@ -130,12 +176,33 @@ QParallelAnimationGroup *RightFrame::createAnimGroup(Button *menu[], int size, c
         anim->setDuration(during);
         anim->setStartValue(startPoint);
         anim->setEndValue(MENU_MID_POINT + MENU_STEP * i);
-        anim->setEasingCurve(QEasingCurve::OutBounce);
+        anim->setEasingCurve(QEasingCurve::InQuint);
+        group->addAnimation(anim);
+
+    }
+    return group;
+}
+
+//create animation group for secondary menu
+QParallelAnimationGroup *RightFrame::createSecondaryAnimGroup(Button *menu[], int size, const QPoint &startPoint, int during)
+{
+    //create animation for menu
+    QParallelAnimationGroup *group = new QParallelAnimationGroup();
+    QPropertyAnimation *anim;
+    for (int i=0; i<size; ++i)
+    {
+        anim = new QPropertyAnimation(menu[i], "pos");
+        anim->setDuration(during);
+        anim->setStartValue(startPoint);
+        anim->setEndValue(MENU_MID_POINT + MENU_STEP * i);
+        anim->setEasingCurve(QEasingCurve::InQuint);
         group->addAnimation(anim);
     }
     return group;
 }
 
+
+//show animation
 void RightFrame::pVpButtonClicked()
 {
     currMenu = PVP_MENU;
@@ -151,6 +218,9 @@ void RightFrame::pVpButtonClicked()
 void RightFrame::pVaButtonClicked()
 {
     currMenu = PVA_MENU;
+    for (int i=0; i<PVP_MENU_SIZE; ++i){
+        pVaMenu[i]->show();
+    }
     mainAnimGroup->setDirection(mainAnimGroup->Backward);
     mainAnimGroup->start();
     pVaAnimGroup->setDirection(pVaAnimGroup->Forward);
@@ -160,6 +230,9 @@ void RightFrame::pVaButtonClicked()
 void RightFrame::aVaButtonClicked()
 {
     currMenu = AVA_MENU;
+    for (int i=0; i<PVP_MENU_SIZE; ++i){
+        aVaMenu[i]->show();
+    }
     mainAnimGroup->setDirection(mainAnimGroup->Backward);
     mainAnimGroup->start();
     aVaAnimGroup->setDirection(aVaAnimGroup->Forward);
@@ -169,6 +242,9 @@ void RightFrame::aVaButtonClicked()
 void RightFrame::recorderButtonClicked()
 {
     currMenu = RECORDER_MENU;
+    for (int i=0; i<PVP_MENU_SIZE; ++i){
+        recorderMenu[i]->show();
+    }
     mainAnimGroup->setDirection(mainAnimGroup->Backward);
     mainAnimGroup->start();
     recorderAnimGroup->setDirection(recorderAnimGroup->Forward);
@@ -178,6 +254,9 @@ void RightFrame::recorderButtonClicked()
 void RightFrame::optionsButtonClicked()
 {
     currMenu = OPTIONS_MENU;
+    for (int i=0; i<PVP_MENU_SIZE; ++i){
+        optionsMenu[i]->show();
+    }
     mainAnimGroup->setDirection(mainAnimGroup->Backward);
     mainAnimGroup->start();
     optionsAnimGroup->setDirection(optionsAnimGroup->Forward);
@@ -207,10 +286,68 @@ void RightFrame::backButtonClicked()
         optionsAnimGroup->setDirection(optionsAnimGroup->Backward);
         optionsAnimGroup->start();
         break;
-    defulat:
+    default:
         break;
     }
     mainAnimGroup->setDirection(mainAnimGroup->Forward);
     mainAnimGroup->start();
     currMenu = MAIN_MENU;
+}
+
+
+void RightFrame::startButtonClicked()
+{
+    switch (currMenu){
+    case PVP_MENU:
+        parent->startPlayerVsPlayerGame();
+        break;
+    case PVA_MENU:
+        parent->startPlayerVsAiGame();
+        break;
+    case AVA_MENU:
+        parent->startAiVsAiGame();
+        break;
+    default:
+        break;
+    }
+}
+
+void RightFrame::regretButtonClicked()
+{
+    parent->regret();
+}
+
+void RightFrame::endButtonClicked()
+{
+    parent->stopGame();
+}
+
+void RightFrame::saveGameButtonClicked()
+{
+
+}
+
+void RightFrame::loadGameButtonClicked()
+{
+
+}
+
+void RightFrame::loadAIButtonClicked()
+{
+
+}
+
+void RightFrame::loseButtonClicked()
+{
+
+}
+
+void RightFrame::prevStepButtonClicked()
+{
+
+}
+
+void RightFrame::nextStepButtonClicked()
+{
+
 }

@@ -1,6 +1,8 @@
 #include "Image.h"
 
-Image::Image(const QString &path, const QSize &size)
+//constructor
+Image::Image(const QString &path, const QSize &size, QWidget *parent)
+    :QLabel(parent)
 {
 	QImage *img = new QImage;
 	if (!(img->load(path))){
@@ -9,30 +11,61 @@ Image::Image(const QString &path, const QSize &size)
 	}
 	this->setPixmap(QPixmap::fromImage(
 							img->scaled(size, Qt::IgnoreAspectRatio)));
+    fatherChessman = NULL;
+
+    //create timer
+    timer = new QTimer(this);
+    timer->setSingleShot(false);
+    timer->setInterval(TIME_INTERVAL);
+    connect(timer, SIGNAL(timeout()), this, SLOT(flicker()));
 }
 
+
+//destructor
 Image::~Image()
 {
 }
 
-
+//add father to the Image (addition of construtor)
 void Image::addFather(Chessman *father)
 {
 	fatherChessman = father;
 }
 
-
-void Image::mousePressEvent(QMouseEvent *e)
-{
-	imagePressed = true;
+//start flicker
+void Image::startFlicker(){
+    timer->start();
+}
+//stop flicker
+void Image::stopFlicker(){
+    timer->stop();
+    show();
 }
 
-void Image::mouseReleaseEvent(QMouseEvent *e)
+//implementation
+void Image::mousePressEvent(QMouseEvent *)
+{
+    if (fatherChessman != NULL){
+        imagePressed = true;
+    }
+}
+
+void Image::mouseReleaseEvent(QMouseEvent *)
 {
 	if (imagePressed){
 		printf("info Image::mouseReleaseEvent clicked emitted\n");
-        //printf("%d\n", this->fatherChessman->getType());
+        printf("%d\n", this->fatherChessman->getType());
 		emit clicked(fatherChessman);
 		imagePressed = false;
 	}
+}
+
+
+void Image::flicker()
+{
+    if (isVisible()){
+        hide();
+    }else{
+        show();
+    }
 }

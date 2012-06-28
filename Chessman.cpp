@@ -1,23 +1,31 @@
 #include "Chessman.h"
 
-Chessman::Chessman(const QPoint &_pos, CHESS_TYPE _type, Image *_img)
-	:img(_img)
+//constructor
+Chessman::Chessman(const QPoint &_pos, CHESSMAN_TYPE _type, Image *_img,
+                   CHESSMAN_TYPE _bakType, Image *_bakImg)
+    :bakImg(_bakImg), img(_img)
 {
 	pos = _pos;
 	type = _type;
+    bakType = _bakType;
+    if (_bakImg != NULL){
+        _bakImg->hide();
+    }
 }
 
+//destructor
 Chessman::~Chessman()
 {
 	delete img;
 }
 
+//get-functions
 QPoint Chessman::getPos()const
 {
 	return pos;
 }
 
-CHESS_TYPE Chessman::getType()const
+CHESSMAN_TYPE Chessman::getType()const
 {
 	return type;
 }
@@ -38,29 +46,29 @@ Image *Chessman::getImg()const
 	return img;
 }
 
+
+//check-functions
+//check validness of a position
 bool Chessman::checkPos(const QPoint &_pos)const
 {
 	INFO("info Chessman::checkPos executed.\n");
     int x = _pos.x();
     int y = _pos.y();
+	//check range
 	if (x < 1 || y < 1 || x >= BOARD_X || y >= BOARD_Y){
 		return false;
 	}
+	//check valid position according to type
 	switch (type){
 	case R_JIANG:
-		if (abs(9-x)<=1 && abs(5-y)<=1){
-			return true;
-		}else{
-			return false;
-		}
-		break;
 	case B_JIANG:
-		if (abs(2-x)<=1 && abs(5-y)<=1){
-			return true;
-		}else{
-			return false;
-		}
-		break;
+        if ((abs(9-x)<=1 && abs(5-y)<=1)
+            || (abs(2-x)<=1 && abs(5-y)<=1)){
+            return true;
+        }else{
+            return false;
+        }
+        break;
 	case R_SHI:
 		if (x==8 || x==10){
 			if (y==4 || y==6){
@@ -150,28 +158,42 @@ bool Chessman::checkPos(const QPoint &_pos)const
 	throw UnreachableError();
 }
 
-
+//check whether can go
 bool Chessman::canGo(Chessman *maps[11][10], const QPoint &_pos)const
 {
 	printf("info Chessman::canGo entered\n");
+	//check the target position
 	if (!checkPos(_pos)){
 		return false;
 	}
 
-	if (pos == _pos){//precheck for speed
+	//same position
+	if (pos == _pos){
 		return false;
 	}
+
     int x = pos.x();
     int y = pos.y();
     int _x = _pos.x();
     int _y = _pos.y();
 
+	//check whether can go according to type
 	switch (type){
 	case R_JIANG:
 	case B_JIANG:
 		if (abs(x-_x)+abs(y-_y)==1){
 			return true;
-		}
+        }else if (maps[_x][_y]->getType() == R_JIANG
+                || maps[_x][_y]->getType() == B_JIANG){
+            int i = min(x, _x);
+            int j = max(x, _x);
+            while (++i<j){
+                if (maps[i][y]->getType() != NON){
+                    return false;
+                }
+            }
+            return true;
+        }
 		return false;
 		break;
 	case R_SHI:
@@ -296,7 +318,6 @@ bool Chessman::canGo(Chessman *maps[11][10], const QPoint &_pos)const
 		return false;
 		break;
 	default:
-		printf("205");
 		throw InvalidMoveError();
 	};
 	throw UnreachableError();
@@ -304,33 +325,65 @@ bool Chessman::canGo(Chessman *maps[11][10], const QPoint &_pos)const
 
 
 
-
-void Chessman::moveTo(Chessman *maps[11][10], const QPoint &_pos)
+//set-functions
+//move the chessman
+void Chessman::moveTo(const QPoint &_pos)
 {
 	printf("info Chessman::moveTo entered\n");
-    /*
-    if (type != NON && !canGo(maps, _pos)){
-        //	printf("%d", canGo(maps, _pos));
-		throw InvalidMoveError();
-    }*/
 	pos = _pos;
 	printf("info Chessman::moveTO exited\n");
 }
 
-void Chessman::die(Chess *chess, QGridLayout *chessLayout)
+void Chessman::toggleDeadAndAlive()
+{
+    printf("info Chessman::toggleDeadAndAlive entered\n");
+    //check whether can toggle
+    if (bakImg == NULL){
+        return;
+    }
+    //toggle type
+    CHESSMAN_TYPE tmpType = type;
+    type = bakType;
+    bakType = tmpType;
+
+    //hide old img from layout
+    img->hide();
+
+    //toggle img
+    Image *tmpImg = img;
+    img = bakImg;
+    bakImg = tmpImg;
+    img->move(bakImg->pos());
+
+    //show img
+    img->show();
+    printf("info Chessman::toggleDeadAndAlive exited\n");
+}
+/*
+//let chessman die
+void Chessman::toggleDeadAndAlive(Chess *chess, QGridLayout *chessLayout)
 {
 	printf("info Chessman::die entered\n");
-	type = NON;
+	//set NON-type
+    type = NON;
+	//remove from layout
     chessLayout->removeWidget(img);
+    QSize tmp = img->size();
+	//delete the old image
 	delete img;
-    img = new Image(QString((SOURCE_PATH + "board.jpg").c_str()), QSize(30,30));
+	//create new blank image
+    img = new Image(QString((SOURCE_PATH + BLANK_IMG).c_str()), tmp);
 	img->addFather(this);
+	//connect click event
     chess->clickConnect(img);
+	//add to layout
     chessLayout->addWidget(img, pos.x(), pos.y());
     printf("info Chessman::die exited\n");
 }
 
+//revive the chessman
 void Chessman::revive()
 {
 
 }
+*/

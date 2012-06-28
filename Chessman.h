@@ -9,40 +9,50 @@
 #include "Chess.h"
 #include "Image.h"
 
-
+//forward declaration
 class QGridLayout;
 class QPoint;
 class Chess;
 class Image;
 
-
+//classes for ERROR
 class InvalidMoveError{};
 class UnreachableError{};
 
+//chessman class
 class Chessman{
- public:
-    Chessman(const QPoint &_pos, CHESS_TYPE _type, Image *_img);
+public:
+	//constructor & destructor
+    Chessman(const QPoint &_pos, CHESSMAN_TYPE _type, Image *_img,
+             CHESSMAN_TYPE _bakType=NON, Image *_bakImg=NULL);
     ~Chessman();
 
+	//get-functions
     QPoint getPos()const;
-	CHESS_TYPE getType()const;
+	CHESSMAN_TYPE getType()const;
 	CHESS_ROLE getRole()const;
 	Image *getImg()const;
 
+	//check-functions
     bool checkPos(const QPoint &_pos)const;
     bool canGo(Chessman *maps[BOARD_X][BOARD_Y], const QPoint &_pos)const;
 
-    void moveTo(Chessman *maps[BOARD_X][BOARD_Y], const QPoint &_pos);
-    void die(Chess *chess, QGridLayout *chessLayout);
-    void revive();
+	//set-functions
+    void moveTo(const QPoint &_pos);
+    void toggleDeadAndAlive();
 
  private:
+	//variables
     QPoint pos;
+    Image *bakImg;
 	Image *img;
-	CHESS_TYPE type;
+    CHESSMAN_TYPE bakType;
+	CHESSMAN_TYPE type;
 };
 
+//useful small functions
 inline int max(int a, int b){return a>b?a:b;}
 inline int min(int a, int b){return a<b?a:b;}
+//why cannot i move these two inline functions into class
 
-#endif
+#endif // CHESSMAN_H

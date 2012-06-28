@@ -5,7 +5,7 @@
 使用QT Creator 进行debug。（QT多文件gdb一直没跳出来，总是无法设置断点）
 后来发现 动画的制作 需要使用绝对布局。。这意味着之几天的代码都要被重写。
 ->使用肉眼定位，定位动画的终止位置与控件在layout中的位置重叠，然后手动刷新一下
-->使用绝对布局和layout布局管理器 一起使用
+->使用绝对布局和layout布局管理器 一起使用， 前者方便动画，后者方便走棋子（省去计算）
 
 
 
@@ -22,4 +22,23 @@ CBase *base = new CDeviced;
 
 remeber to create auto reverse toggler
 
-对将情况！！
+[v]对将情况！！
+
+auto step
+ai vs ai之后马上复盘。。保存临时文件，调用副盘
+
+struct&class priavte和public， 是否使用友元函数 ***
+QString, QPoint是否使用指针
+setters or all-in-constructors
+lots of forward declarations needed?
+where to put const strings & setting parameters? in a def.h or in its class?
+
+features coming soon:
+3D module
+sound effects
+option panel
+AI interface
+more animation effects
+
+
+
