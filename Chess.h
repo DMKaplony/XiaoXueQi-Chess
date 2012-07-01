@@ -4,6 +4,7 @@
 
 #include <QtGui>
 
+#include <fstream>
 #include <string>
 #include <vector>
 using namespace std;
@@ -50,17 +51,19 @@ public:
     void connectRecorder(Button *btn);
     void connectOptions(Button *btn);
 
-    void startPlayerVsPlayerGame();
-    void startPlayerVsAiGame();
-    void startAiVsAiGame();
+    void startGame(GAME_TYPE gameType);
+    void saveGame();
+    void loadGame();
     void regret();
-    void stopGame();
-
-public slots:
-    //slots
-    void startRecorder();
-    void showOptions();
+    void loadSingleAI();
+    void loadDoubleAI();
+    void prevStep();
+    void nextStep();
+    void autoStep();
+    void endGame();
     void exitGame();
+    void exitApp();
+    void showOptions();
 
 private:
     //variables for the scene
@@ -104,8 +107,8 @@ private:
     static const QPoint BOARD_POS;
 
     //init & finit for the game
-	void init(PLAYER_ROLE _R, PLAYER_ROLE _B, const QString &_RAi=QString(), const QString &_BAi=QString());
-	void finit();
+    void init(PLAYER_ROLE _R, PLAYER_ROLE _B, const QString &_RAi=QString(), const QString &_BAi=QString());
+    void finit();
 
 	//other functions
     void checkStatus();
@@ -115,6 +118,7 @@ private slots:
     //slots
     void chessmanClicked(Chessman *chessman);
     void reverseBoard();
+    void updateIndicators();
 };
 
 #endif // CHESS_H

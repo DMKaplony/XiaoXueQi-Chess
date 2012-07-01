@@ -11,11 +11,8 @@
 #include "Button.h"
 
 //forward declarations
-class QObject;
-class QLabel;
 class Chess;
 class Image;
-class Button;
 
 //LeftFrame class
 class LeftFrame:public QObject{

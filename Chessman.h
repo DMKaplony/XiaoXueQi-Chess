@@ -39,7 +39,8 @@ public:
 
 	//set-functions
     void moveTo(const QPoint &_pos);
-    void toggleDeadAndAlive();
+    void die();
+    void revive();
 
  private:
 	//variables
@@ -48,6 +49,8 @@ public:
 	Image *img;
     CHESSMAN_TYPE bakType;
 	CHESSMAN_TYPE type;
+
+    void toggleDeadAndAlive();
 };
 
 //useful small functions

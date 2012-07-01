@@ -8,9 +8,6 @@
 #include "Chessman.h"
 
 //forward declarations
-class QLabel;
-class QTimer;
-
 class Chessman;
 
 //class for ERROR

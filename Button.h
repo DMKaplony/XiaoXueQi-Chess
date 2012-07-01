@@ -21,7 +21,6 @@ protected:
     void mouseReleaseEvent(QMouseEvent *);
     void enterEvent(QEvent *);
     void leaveEvent(QEvent *);
-private:
 	//variable
     bool buttonPressed;
 signals:

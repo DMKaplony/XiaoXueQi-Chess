@@ -359,31 +359,25 @@ void Chessman::toggleDeadAndAlive()
     img->show();
     printf("info Chessman::toggleDeadAndAlive exited\n");
 }
-/*
+
 //let chessman die
-void Chessman::toggleDeadAndAlive(Chess *chess, QGridLayout *chessLayout)
+void Chessman::die()
 {
-	printf("info Chessman::die entered\n");
-	//set NON-type
-    type = NON;
-	//remove from layout
-    chessLayout->removeWidget(img);
-    QSize tmp = img->size();
-	//delete the old image
-	delete img;
-	//create new blank image
-    img = new Image(QString((SOURCE_PATH + BLANK_IMG).c_str()), tmp);
-	img->addFather(this);
-	//connect click event
-    chess->clickConnect(img);
-	//add to layout
-    chessLayout->addWidget(img, pos.x(), pos.y());
-    printf("info Chessman::die exited\n");
+    //check whether is dead already
+    if (bakType != NON || (bakType == type)){
+        //dead already
+        return;
+    }
+    toggleDeadAndAlive();
 }
 
 //revive the chessman
 void Chessman::revive()
 {
-
+    //check whether is alive already
+    if (type != NON || bakType == type){
+        //alive already
+        return;
+    }
+    toggleDeadAndAlive();
 }
-*/

@@ -27,11 +27,12 @@ remeber to create auto reverse toggler
 auto step
 ai vs ai之后马上复盘。。保存临时文件，调用副盘
 
-struct&class priavte和public， 是否使用友元函数 ***
-QString, QPoint是否使用指针
-setters or all-in-constructors
-lots of forward declarations needed?
-where to put const strings & setting parameters? in a def.h or in its class?
+(v)struct&class priavte和public， 是否使用友元函数 ***
+(v)QString, QPoint是否使用指针
+(v)setters or all-in-constructors
+(v)lots of forward declarations needed?
+(v)where to put const strings & setting parameters? in a def.h or in its class?
+vector -> const vector<> &vec? invalid??
 
 features coming soon:
 3D module

@@ -13,9 +13,13 @@ HEADERS += Chessman.h def.h Image.h \
     Button.h \
     LeftFrame.h \
     RightFrame.h \
-    Chess.h
+    Chess.h \
+    Menu.h \
+    MenuButton.h
 SOURCES += Chessman.cpp Image.cpp main.cpp \
     Button.cpp \
     LeftFrame.cpp \
     RightFrame.cpp \
-    Chess.cpp
+    Chess.cpp \
+    Menu.cpp \
+    MenuButton.cpp
